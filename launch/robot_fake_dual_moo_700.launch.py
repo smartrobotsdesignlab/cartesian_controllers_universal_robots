@@ -18,7 +18,7 @@ def generate_launch_description():
 
     # Declare arguments
     arg_robot_ip = DeclareLaunchArgument(
-        "robot_ip", default_value="192.168.1.4", description="The robot's IP address"
+        "alice_robot_ip", default_value="192.168.1.6", description="The robot's IP address"
     )
     ur_type = DeclareLaunchArgument(
         "ur_type",
@@ -28,8 +28,8 @@ def generate_launch_description():
     declared_args = [arg_robot_ip,ur_type]
 
     # Robot description
-    description_file = PathJoinSubstitution([this_pkg, "urdf", "setup.urdf.xacro"])
-    robot_ip = LaunchConfiguration("robot_ip")
+    description_file = PathJoinSubstitution([this_pkg, "urdf", "setup_fake_dual_moo_700.urdf.xacro"])
+    robot_ip = LaunchConfiguration("alice_robot_ip")
     tf_prefix = LaunchConfiguration("tf_prefix")
     robot_description_content = Command(
         [
@@ -37,7 +37,7 @@ def generate_launch_description():
             " ",
             description_file,
             " ",
-            "robot_ip:=",
+            "alice_robot_ip:=",
             robot_ip,
             " ",
         ]
@@ -45,21 +45,27 @@ def generate_launch_description():
     robot_description = {"robot_description": robot_description_content}
 
     # Robot control
-    robot_controllers = PathJoinSubstitution([this_pkg, "config", "controller_manager.yaml"])
+    robot_controllers = PathJoinSubstitution([this_pkg, "config", "controller_manager_fake_dual.yaml"])
     control_node = Node(
         package="ur_robot_driver",
         executable="ur_ros2_control_node",
         output="screen",
         #prefix="screen -d -m gdb -command=/home/scherzin/.ros/my_debug_log --ex run --args",
         remappings=[
-            ('motion_control_handle/target_frame', 'target_frame'),
-            ('cartesian_motion_controller/target_frame', 'target_frame'),
-            ('cartesian_compliance_controller/target_frame', 'target_frame'),
+            # ('alice_motion_control_handle/target_frame', 'alice_target_frame'),
+            # ('bob_motion_control_handle/target_frame', 'bob_target_frame'),
+            # ('cartesian_motion_controller/target_frame', 'target_frame'),
+            # ('alice_cartesian_compliance_controller/target_frame', 'alice_target_frame'),
+            # ('bob_cartesian_compliance_controller/target_frame', 'bob_target_frame'),
+            # ('alice_cartesian_motion_controller/target_frame', 'alice_target_frame'),
+            # ('bob_cartesian_motion_controller/target_frame', 'bob_target_frame'),
             ('cartesian_force_controller/target_wrench', 'target_wrench'),
             ('cartesian_compliance_controller/target_wrench', 'target_wrench'),
             ('cartesian_force_controller/ft_sensor_wrench', 'ft_sensor_wrench'),
-            ('cartesian_compliance_controller/ft_sensor_wrench', 'ft_sensor_wrench'),
-            ('force_torque_sensor_broadcaster/wrench', 'ft_sensor_wrench'),
+            ('alice_cartesian_compliance_controller/ft_sensor_wrench', 'alice_ft_sensor_wrench'),
+            ('bob_cartesian_compliance_controller/ft_sensor_wrench', 'bob_ft_sensor_wrench'),
+            ('alice_force_torque_sensor_broadcaster/wrench', 'alice_ft_sensor_wrench'),
+            ('bob_force_torque_sensor_broadcaster/wrench', 'bob_ft_sensor_wrench'),
             ],
         parameters=[robot_description, robot_controllers],
     )
@@ -75,17 +81,23 @@ def generate_launch_description():
     # Active controllers
     active_list = [
             "joint_state_broadcaster",
-            "force_torque_sensor_broadcaster",
-            "scaled_joint_trajectory_controller"
+            # "alice_scaled_joint_trajectory_controller",
+            # "bob_scaled_joint_trajectory_controller",
+            "alice_cartesian_motion_controller",
+            "bob_cartesian_motion_controller",
+            "bob_hand_controller",
+            "alice_hand_controller",
+            # "alice_motion_control_handle",
+            # "bob_motion_control_handle",
             ]
     active_spawners = [controller_spawner(controller) for controller in active_list]
 
     # Inactive controllers
     inactive_list = [
-            "cartesian_compliance_controller",
-            "cartesian_force_controller",
-            "cartesian_motion_controller",
-            "motion_control_handle"
+            # "alice_cartesian_motion_controller",
+            # "bob_cartesian_motion_controller",
+            # "alice_scaled_joint_trajectory_controller",
+            # "bob_scaled_joint_trajectory_controller",
             ]
     inactive_spawners = [controller_spawner(controller, "--inactive") for controller in inactive_list]
 
@@ -111,5 +123,6 @@ def generate_launch_description():
 
     # Nodes to start
     nodes = [rviz, control_node, robot_state_publisher] + active_spawners + inactive_spawners
+    # nodes = [rviz, control_node] + active_spawners + inactive_spawners
 
     return LaunchDescription(declared_args + nodes)

@@ -17,49 +17,53 @@ def generate_launch_description():
     this_pkg = FindPackageShare("cartesian_controllers_universal_robots")
 
     # Declare arguments
-    arg_robot_ip = DeclareLaunchArgument(
-        "robot_ip", default_value="192.168.1.4", description="The robot's IP address"
+    arg_alice_ip = DeclareLaunchArgument(
+        "alice_robot_ip", default_value="192.168.15.6", description="The robot's IP address"
+    )
+
+    arg_bob_ip = DeclareLaunchArgument(
+        "bob_robot_ip", default_value="192.168.15.4", description="The robot's IP address"
     )
     ur_type = DeclareLaunchArgument(
         "ur_type",
         description="Type/series of used UR robot.",
         choices=["ur3", "ur3e", "ur5", "ur5e", "ur10", "ur10e", "ur16e"]
     )
-    declared_args = [arg_robot_ip,ur_type]
+    declared_args = [arg_alice_ip, arg_bob_ip, ur_type]
 
     # Robot description
-    description_file = PathJoinSubstitution([this_pkg, "urdf", "setup.urdf.xacro"])
-    robot_ip = LaunchConfiguration("robot_ip")
+    description_file = PathJoinSubstitution([this_pkg, "urdf", "setup_real_dual.urdf.xacro"])
+    alice_ip = LaunchConfiguration("alice_robot_ip")
     tf_prefix = LaunchConfiguration("tf_prefix")
     robot_description_content = Command(
         [
             FindExecutable(name="xacro"),
             " ",
             description_file,
-            " ",
-            "robot_ip:=",
-            robot_ip,
-            " ",
         ]
     )
     robot_description = {"robot_description": robot_description_content}
 
     # Robot control
-    robot_controllers = PathJoinSubstitution([this_pkg, "config", "controller_manager.yaml"])
+    robot_controllers = PathJoinSubstitution([this_pkg, "config", "controller_manager_real_dual.yaml"])
     control_node = Node(
         package="ur_robot_driver",
         executable="ur_ros2_control_node",
         output="screen",
         #prefix="screen -d -m gdb -command=/home/scherzin/.ros/my_debug_log --ex run --args",
         remappings=[
-            ('motion_control_handle/target_frame', 'target_frame'),
-            ('cartesian_motion_controller/target_frame', 'target_frame'),
-            ('cartesian_compliance_controller/target_frame', 'target_frame'),
-            ('cartesian_force_controller/target_wrench', 'target_wrench'),
-            ('cartesian_compliance_controller/target_wrench', 'target_wrench'),
-            ('cartesian_force_controller/ft_sensor_wrench', 'ft_sensor_wrench'),
-            ('cartesian_compliance_controller/ft_sensor_wrench', 'ft_sensor_wrench'),
-            ('force_torque_sensor_broadcaster/wrench', 'ft_sensor_wrench'),
+            ('alice_motion_control_handle/target_frame', 'alice_target_frame'),
+            ('bob_motion_control_handle/target_frame', 'bob_target_frame'),
+            ('alice_cartesian_compliance_controller/target_frame', 'alice_target_frame'),
+            ('bob_cartesian_compliance_controller/target_frame', 'bob_target_frame'),
+            ('alice_cartesian_force_controller/target_frame', 'alice_target_frame'),
+            ('bob_cartesian_force_controller/target_frame', 'bob_target_frame'),
+            ('alice_cartesian_force_controller/ft_sensor_wrench', 'alice_ft_sensor_wrench'),
+            ('bob_cartesian_force_controller/ft_sensor_wrench', 'bob_ft_sensor_wrench'),
+            ('alice_cartesian_compliance_controller/ft_sensor_wrench', 'alice_ft_sensor_wrench'),
+            ('bob_cartesian_compliance_controller/ft_sensor_wrench', 'bob_ft_sensor_wrench'),
+            ('alice_force_torque_sensor_broadcaster/wrench', 'alice_ft_sensor_wrench'),
+            ('bob_force_torque_sensor_broadcaster/wrench', 'bob_ft_sensor_wrench'),
             ],
         parameters=[robot_description, robot_controllers],
     )
@@ -75,17 +79,27 @@ def generate_launch_description():
     # Active controllers
     active_list = [
             "joint_state_broadcaster",
-            "force_torque_sensor_broadcaster",
-            "scaled_joint_trajectory_controller"
+            "alice_force_torque_sensor_broadcaster",
+            "bob_force_torque_sensor_broadcaster",
+            # "alice_scaled_joint_trajectory_controller",
+            # "bob_scaled_joint_trajectory_controller",
+            "alice_cartesian_motion_controller",
+            "bob_cartesian_motion_controller",
+            # "alice_motion_control_handle",
+            # "bob_motion_control_handle",
+            "bob_hand_controller",
+            "alice_hand_controller"
             ]
     active_spawners = [controller_spawner(controller) for controller in active_list]
 
     # Inactive controllers
     inactive_list = [
-            "cartesian_compliance_controller",
-            "cartesian_force_controller",
-            "cartesian_motion_controller",
-            "motion_control_handle"
+            "alice_cartesian_compliance_controller",
+            "bob_cartesian_compliance_controller",
+            "alice_cartesian_force_controller",
+            "bob_cartesian_force_controller",
+            # "alice_cartesian_motion_controller",
+            # "bob_cartesian_motion_controller"
             ]
     inactive_spawners = [controller_spawner(controller, "--inactive") for controller in inactive_list]
 

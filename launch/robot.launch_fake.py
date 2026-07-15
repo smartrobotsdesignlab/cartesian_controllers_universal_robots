@@ -45,7 +45,7 @@ def generate_launch_description():
     robot_description = {"robot_description": robot_description_content}
 
     # Robot control
-    robot_controllers = PathJoinSubstitution([this_pkg, "config", "controller_manager.yaml"])
+    robot_controllers = PathJoinSubstitution([this_pkg, "config", "controller_manager_fake.yaml"])
     control_node = Node(
         package="ur_robot_driver",
         executable="ur_ros2_control_node",

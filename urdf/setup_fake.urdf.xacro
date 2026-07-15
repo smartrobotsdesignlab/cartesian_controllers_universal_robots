@@ -24,7 +24,7 @@
                 script_filename="$(find ur_client_library)/resources/external_control.urscript"
                 input_recipe_filename="$(find ur_robot_driver)/resources/rtde_input_recipe.txt"
                 output_recipe_filename="$(find ur_robot_driver)/resources/rtde_output_recipe.txt"
-                use_fake_hardware="false">
+                use_fake_hardware="true">
           <origin xyz="0 0.0 0.0" rpy="0 0 0" />
         </xacro:ur_robot>
 

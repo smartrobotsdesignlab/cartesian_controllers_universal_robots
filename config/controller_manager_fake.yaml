@@ -115,8 +115,8 @@ cartesian_compliance_controller:
     # position interface.  It's probably suitable to test both on a new robot
     # and decide for what works best.
     command_interfaces:
-      #- position
-      - velocity
+      - position
+      # - velocity
 
     stiffness:  # w.r.t. compliance_ref_link coordinates
         trans_x: 100.0

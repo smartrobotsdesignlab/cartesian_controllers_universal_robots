@@ -28,7 +28,7 @@ def generate_launch_description():
     declared_args = [arg_robot_ip,ur_type]
 
     # Robot description
-    description_file = PathJoinSubstitution([this_pkg, "urdf", "setup.urdf.xacro"])
+    description_file = PathJoinSubstitution([this_pkg, "urdf", "setup_fake.urdf.xacro"])
     robot_ip = LaunchConfiguration("robot_ip")
     tf_prefix = LaunchConfiguration("tf_prefix")
     robot_description_content = Command(
@@ -45,7 +45,7 @@ def generate_launch_description():
     robot_description = {"robot_description": robot_description_content}
 
     # Robot control
-    robot_controllers = PathJoinSubstitution([this_pkg, "config", "controller_manager.yaml"])
+    robot_controllers = PathJoinSubstitution([this_pkg, "config", "controller_manager_fake.yaml"])
     control_node = Node(
         package="ur_robot_driver",
         executable="ur_ros2_control_node",
