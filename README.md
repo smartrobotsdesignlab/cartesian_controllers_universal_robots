@@ -25,7 +25,7 @@ the original upstream project, including:
 
 - Universal Robots ROS 2 Driver
 - `ros2_control`
-- Cartesian controllers
+- [Cartesian Controllers](https://github.com/fzi-forschungszentrum-informatik/cartesian_controllers)
 - Xacro
 - RViz 2
 
